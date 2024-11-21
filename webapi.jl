@@ -1,6 +1,7 @@
 include("warehouse.jl")
 using Genie, Genie.Renderer.Json, Genie.Requests, HTTP
 using UUIDs
+using JSON
 
 # Diccionario para almacenar instancias de simulaciones con IDs únicos
 instances = Dict()
@@ -43,7 +44,7 @@ route("/simulations", method = POST) do
     end
 
     # Devuelve la respuesta JSON con el ID de la simulación y el estado inicial de los agentes
-    json(Dict("Location" => "/simulations/$id", "robots" => robots, "boxes" => boxes))
+    JSON.json(Dict("Location" => "/simulations/$id", "robots" => robots, "boxes" => boxes))
 end
 
 # Ruta para obtener el estado de una simulación específica y avanzar un paso en la simulación
@@ -84,7 +85,7 @@ route("/simulations/:id") do
     end
 
     # Devuelve la respuesta JSON con el estado actualizado de los robots y cajas
-    json(Dict("robots" => robots, "boxes" => boxes))
+    JSON.json(Dict("robots" => robots, "boxes" => boxes))
 end
 
 # Configuraciones de CORS para permitir acceso desde cualquier origen y varios métodos HTTP

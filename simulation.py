@@ -181,7 +181,7 @@ def planoText():
 
 
 def display():
-    global robots_julia, boxes_julia
+    global robots_julia, boxes_julia, boxes,robots
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     Axis()
         

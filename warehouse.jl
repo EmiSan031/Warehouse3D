@@ -326,7 +326,7 @@ function initialize_robots!(model)
     # end
     x = 20
     z = 40
-    add_agent!(RobotAgent, model; pos = (x,1,z), min_x = 5, max_x = 20, drop_zone_x = 40,drop_zone_z = 40, collect_zone_z = 80,id = 1, actual_x = x, previous_pos = (x,1,z))
+    add_agent!(RobotAgent, model; id = 300, pos = (x,1,z), min_x = 5, max_x = 20, drop_zone_x = 40,drop_zone_z = 40, collect_zone_z = 80,id = 1, actual_x = x, previous_pos = (x,1,z))
 end
 
 # Carga las cajas en la ruta del robot (sin necesidad de *pathfinding*)

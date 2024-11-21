@@ -141,6 +141,8 @@ def Init():
         box = Box([x_log,y_log,z_log],[w_log, h_log,d_log],1)
         boxes.append(box)
     
+    print(len(boxes))
+    
     # for bin_data in bins_julia:
     #     x_log,y_log,z_log = bin_data["position"]
     #     x_log,y_log,z_log = bin_data["position"]

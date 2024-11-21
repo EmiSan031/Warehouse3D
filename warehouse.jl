@@ -249,7 +249,7 @@ function handle_packing(api_url, container, items, model)
             println("No hay robots disponibles en el modelo.")
             return
         end
-
+        box_id = 1
         robot_index = 1
         start_x = 5
         # Agregar cajas al modelo
@@ -262,6 +262,7 @@ function handle_packing(api_url, container, items, model)
             
             box = add_agent!(BoxAgent,
                 model;
+                id = box_id,
                 pos = start_pos,
                 weight = weight,
                 width = dimensions[1],
@@ -275,6 +276,8 @@ function handle_packing(api_url, container, items, model)
             # Avanzar al siguiente robot (ciclo circular)
             robot_index = robot_index % length(robots) + 1
             start_x = start_x + box.height + 3
+            box_id += 1
+            println("1 caja agregada")
         end
 
         println("Cajas agregadas al modelo después de ordenarlas.")

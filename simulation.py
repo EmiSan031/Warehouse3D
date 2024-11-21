@@ -187,7 +187,7 @@ def display():
         
     for robot_data in robots_julia:
         x_log,y_log,z_log = robot_data["position"]
-        robot = robots[robot_data["id"] - 1]
+        robot = robots[robot_data["id"] - 30]
         
         if robot_data["rotating"] == 0:
             robot.up([x_log,y_log,z_log])

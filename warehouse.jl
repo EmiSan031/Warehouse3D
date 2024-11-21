@@ -8,7 +8,7 @@ using Agents, Random, Distributions,HTTP,JSON
     height::Int
     depth::Int
     weight::Int
-    position_in_container::Tuple{Float64, Float64, Float64}  # Posición en el contenedor
+    position_in_container::Tuple{Int, Int, Int}  # Posición en el contenedor
     showing::Int = 1
 end
 

@@ -1,4 +1,4 @@
-using Agents, Random, Distributions,HTTP,Json
+using Agents, Random, Distributions,HTTP,JSON
 
 
 
@@ -299,26 +299,26 @@ function warehouse_simulation(; grid_dims = (200,50,200), num_boxes = 5)
     space = GridSpace((200,40,200); periodic = false, metric = :chebyshev)
     model = StandardABM(Union{RobotAgent, BoxAgent}, space; agent_step! = agent_step!, scheduler = Schedulers.Randomly(), properties = Dict{Symbol, Any}(:matrix => nothing))
     initialize_robots!(model)
-    handle_packing("http://localhost:5050/calPacking", container, items, model)
+    handle_packing("http://192.168.1.85:5050/calPacking", container, items, model)
     return model
 end
 
-# Inicializa la matriz y coloca cajas en posiciones aleatorias
-function initialize_grid!(model, grid_dims, num_boxes)
-    matrix = fill(1, grid_dims)
-    for a in 1:num_boxes
-        empty = collect(empty_positions(model))
-        pos = rand(empty)
-        x, z = pos[1], pos[3]
-        while z == 1 || z == 2  # Evita la zona de descarga y de robots
-            pos = rand(empty)
-            x, z = pos[1], pos[3]
-        end
-        matrix[x, z] = 0  # Marca la posición de la caja en la matriz
-        add_agent!(BoxAgent, model; pos = pos, id = a + 100)
-    end
-    model.matrix = matrix
-end
+# # Inicializa la matriz y coloca cajas en posiciones aleatorias
+# function initialize_grid!(model, grid_dims, num_boxes)
+#     matrix = fill(1, grid_dims)
+#     for a in 1:num_boxes
+#         empty = collect(empty_positions(model))
+#         pos = rand(empty)
+#         x, z = pos[1], pos[3]
+#         while z == 1 || z == 2  # Evita la zona de descarga y de robots
+#             pos = rand(empty)
+#             x, z = pos[1], pos[3]
+#         end
+#         matrix[x, z] = 0  # Marca la posición de la caja en la matriz
+#         add_agent!(BoxAgent, model; pos = pos, id = a + 100)
+#     end
+#     model.matrix = matrix
+# end
 
 # Inicializa los robots y define los límites de cada uno en el almacén
 function initialize_robots!(model)

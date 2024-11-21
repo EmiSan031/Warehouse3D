@@ -279,7 +279,7 @@ function handle_packing(api_url, container, items, model)
 
         println("Cajas agregadas al modelo después de ordenarlas.")
     else
-        println("Error al ordenar las cajas: ", response_data["Reason"])
+        println("Error al ordenar las cajas: ", packing_result["Reason"])
     end
     
 end

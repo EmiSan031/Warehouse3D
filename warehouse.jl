@@ -241,6 +241,7 @@ end
 function handle_packing(api_url, container, items, model)
     packing_data = generate_packing_data(container, items)
     packing_result = send_packing_request(api_url, packing_data)
+    print(packing_result)
     if packing_result["Success"]
         robots = [agent for agent in allagents(model) if agent isa RobotAgent]
 
@@ -297,7 +298,7 @@ function warehouse_simulation(; grid_dims = (200,50,200), num_boxes = 5)
     space = GridSpace((200,40,200); periodic = false, metric = :chebyshev)
     model = StandardABM(Union{RobotAgent, BoxAgent}, space; agent_step! = agent_step!, scheduler = Schedulers.Randomly(), properties = Dict{Symbol, Any}(:matrix => nothing))
     initialize_robots!(model)
-    handle_packing("http://192.168.1.85:5050/calPacking", container, items, model)
+    handle_packing("http://10.50.113.227:5050/calPacking", container, items, model)
     return model
 end
 

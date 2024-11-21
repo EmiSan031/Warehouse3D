@@ -61,7 +61,7 @@ filenames = ["img1.bmp","wheel.jpeg", "walle.jpeg","basura.bmp","conteneder.jpg"
 
 robots = []
 boxes = []
-URL_BASE = "http://192.168.1.203:8000"
+URL_BASE = "http://10.50.92.178:8000"
 r = requests.post(URL_BASE + "/simulations", allow_redirects=False)
 datos = r.json()
 LOCATION = datos["Location"]

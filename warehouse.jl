@@ -240,12 +240,7 @@ end
 
 function handle_packing(api_url, container, items, model)
     packing_data = generate_packing_data(container, items)
-    try
-        packing_result = send_packing_request(api_url, packing_data)
-    catch e
-        println("Error al enviar datos a la API: ", e)
-        return
-    end
+    packing_result = send_packing_request(api_url, packing_data)
     if packing_result["Success"]
         robots = [agent for agent in allagents(model) if agent isa RobotAgent]
 

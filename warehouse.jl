@@ -193,7 +193,7 @@ end
 function drop_box(robot::RobotAgent, model)
     robot.heading_back = false  # Marcar que el robot no está regresando
     box = robot.cargo_boxes[1]
-    move_agent!(box, model, (box.position_in_container[1] + 20, box.position_in_container[2], box.position_in_container[3] + 40))
+    move_agent!(box,(box.position_in_container[1] + 20, box.position_in_container[2], box.position_in_container[3] + 40),model)
     box.showing = 1
     popfirst!(robot.cargo_boxes)
     robot.box_width = 0

@@ -12,15 +12,16 @@ import math
 
 
 class Cubo:
-    def __init__(self,position,WHD):
+    def __init__(self, textures, txtIndex):
         # Se inicializa las coordenadas de los vertices del cubo
 
-        self.Position = position
-        self.WHD = WHD
+        self.Position = [0,0,0]
 
         #Arreglo de texturas
         self.textures = textures
 
+        #Index de la textura a utilizar
+        self.txtIndex = txtIndex
 
 
     def draw(self):

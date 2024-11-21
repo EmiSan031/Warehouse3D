@@ -284,9 +284,9 @@ function handle_packing(api_url, container, items, model)
     
 end
 
-# Función para inicializar el modelo sin *pathfinding*
+
 function warehouse_simulation(; grid_dims = (200,50,200), num_boxes = 5)
-    container = Dict(:name => "Container1", :WHD => [40, 60, 15], :weight => 1000, :corner => [0, 0, 0], :openTop => 1)
+    container = Dict(:name => "Container1", :WHD => [40, 60, 15], :weight => 1000, :corner => 15, :openTop => 1)
     items = [
     Dict(:name => "Box1", :WHD => [10, 10, 10], :weight => 5, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
     Dict(:name => "Box2", :WHD => [20, 20, 20], :weight => 10, :count => 2, :level => 1, :loadbear => 20, :updown => 1, :color => 2, :type => 1)

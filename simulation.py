@@ -92,6 +92,7 @@ def Axis():
     glLineWidth(1.0)
 
 def Texturas(filepath):
+    global textures
     textures.append(glGenTextures(1))
     id = len(textures) - 1
     glBindTexture(GL_TEXTURE_2D, textures[id])
@@ -106,7 +107,7 @@ def Texturas(filepath):
     glGenerateMipmap(GL_TEXTURE_2D)
     
 def Init():
-    global robots, boxes
+    global robots, boxes, textures
     screen = pygame.display.set_mode(
         (screen_width, screen_height), DOUBLEBUF | OPENGL)
     pygame.display.set_caption("OpenGL: cubos")
@@ -137,7 +138,7 @@ def Init():
     for box_data in boxes_julia:
         x_log, y_log,z_log = box_data["position"]
         w_log,h_log,d_log = box_data["WHD"]
-        box = Box([x_log,y_log,z_log],[w_log, h_log,d_log])
+        box = Box([x_log,y_log,z_log],[w_log, h_log,d_log],1)
         boxes.append(box)
     
     # for bin_data in bins_julia:
@@ -314,6 +315,7 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
     update_simulation()
+    glClear(GL_COLOR_BUFFER_BIT)
     display()
     pygame.display.flip()
     pygame.time.wait(10)

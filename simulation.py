@@ -12,26 +12,25 @@ import random
 import sys
 sys.path.append('..')
 from Lifter import Lifter
-from Basura import Basura
 from Bin import Bin
 from Cubo import Cubo
 from box import Box
 import requests
 
-screen_width = 500
-screen_height = 500
+screen_width = 800
+screen_height = 800
 #vc para el obser.
 FOVY=60.0
-ZNEAR=0.01
-ZFAR=1800.0
+ZNEAR=1.0
+ZFAR=1000.0
 #Variables para definir la posicion del observador
 #gluLookAt(EYE_X,EYE_Y,EYE_Z,CENTER_X,CENTER_Y,CENTER_Z,UP_X,UP_Y,UP_Z)
-EYE_X=200.0
-EYE_Y=150.0
-EYE_Z=200.0
-CENTER_X=0
+EYE_X=150.0
+EYE_Y=60.0
+EYE_Z=150.0
+CENTER_X=75
 CENTER_Y=0
-CENTER_Z=0
+CENTER_Z=60
 UP_X=0
 UP_Y=1
 UP_Z=0
@@ -57,11 +56,15 @@ radius = 300
 
 # Arreglo para el manejo de texturas
 textures = []
-filenames = ["img1.bmp","wheel.jpeg", "walle.jpeg","basura.bmp","conteneder.jpg"]
+filenames = ["img1.bmp","wheel.jpeg", "robot_body.jpg","pared_des.jpg","conteneder.jpg","piso.jpg","pared.jpg","transito..jpg","caja.jpg","load_zone.jpg","techo.jpg"]
 
 robots = []
 boxes = []
-URL_BASE = "http://10.50.92.178:8000"
+h_load_zone = 0
+
+num_cam = 0   
+
+URL_BASE = "http://192.168.1.85:8000"
 r = requests.post(URL_BASE + "/simulations", allow_redirects=False)
 datos = r.json()
 LOCATION = datos["Location"]
@@ -107,7 +110,7 @@ def Texturas(filepath):
     glGenerateMipmap(GL_TEXTURE_2D)
     
 def Init():
-    global robots, boxes, textures
+    global robots, boxes, textures, h_load_zone
     screen = pygame.display.set_mode(
         (screen_width, screen_height), DOUBLEBUF | OPENGL)
     pygame.display.set_caption("OpenGL: cubos")
@@ -138,15 +141,12 @@ def Init():
     for box_data in boxes_julia:
         x_log, y_log,z_log = box_data["position"]
         w_log,h_log,d_log = box_data["WHD"]
-        box = Box([x_log,y_log,z_log],[w_log, h_log,d_log],1)
+        h_load_zone += h_log
+        box = Box([x_log,y_log,z_log],[w_log,h_log,d_log],1,textures)
         boxes.append(box)
     
-    print(len(boxes))
-    
-    # for bin_data in bins_julia:
-    #     x_log,y_log,z_log = bin_data["position"]
-    #     x_log,y_log,z_log = bin_data["position"]
-    bin = Bin(textures, [40,0,20],[40,60,15])
+
+    bin = Bin(textures, [40,0.1,19.5],[65,44.5,40.5])
     bins.append(bin)
         
 def update_simulation():
@@ -155,36 +155,397 @@ def update_simulation():
     datos = r.json()
     robots_julia = datos["robots"]
     boxes_julia = datos["boxes"]
-            
-def planoText():
+    
+def draw_ceiling():
+    glPushMatrix()
     # activate textures
     glColor(1.0, 1.0, 1.0)
-    #glEnable(GL_TEXTURE_2D)
-    # front face
-    #glBindTexture(GL_TEXTURE_2D, textures[0])  # Use the first texture
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[10])  # Use the first texture
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(DimBoard, 100, 0)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(DimBoard, 50, DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(-DimBoard, 50, DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(-DimBoard, 100, 0)
+    glEnd()
+    glPopMatrix()
+        
+    glPushMatrix()
+    # activate textures
+    glColor(1.0, 1.0, 1.0)
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[10])  # Use the first texture
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 100, 0)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, 50, -DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(DimBoard, 50, -DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(DimBoard, 100, 0)
+    glEnd()
+    glDisable(GL_TEXTURE_2D)
+    glPopMatrix()
+        
+def draw_buildings():
+    
+    glPushMatrix()
+    # activate textures
+    glColor(1.0, 1.0, 1.0)
+    # glEnable(GL_TEXTURE_2D)
+    # glBindTexture(GL_TEXTURE_2D, textures[5])  # Use the first texture
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-130, 0, -DimBoard)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, 0, DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, 0, DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40,   0, -DimBoard)
+    glEnd()
+    
     glBegin(GL_QUADS)
     glTexCoord2f(0.0, 0.0)
     glVertex3d(-DimBoard, 0, -DimBoard)
-    
     glTexCoord2f(0.0, 1.0)
     glVertex3d(-DimBoard, 0, DimBoard)
-    
     glTexCoord2f(1.0, 1.0)
-    glVertex3d(DimBoard, 0, DimBoard)
+    glVertex3d(40, 0, DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40,   0, -DimBoard)
+    glEnd()
     
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 0, -DimBoard)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, 0, DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, 0, DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40,   0, -DimBoard)
+    glEnd()
+    glPopMatrix()
+    
+    # glDisable(GL_TEXTURE_2D)
+            
+def planoText():
+    glPushMatrix()
+    # activate textures
+    glColor(1.0, 1.0, 1.0)
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[5])  # Use the first texture
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 0, -DimBoard)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, 0, DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, 0, DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40,   0, -DimBoard)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, 60)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, 0, 200)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(200, 0, 200)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(200, 0, 60)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, -20)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, 0, 20)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(100, 0, 20)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(100, 0, -20)
+    glEnd()
+    glPopMatrix()
+
+    
+    glDisable(GL_TEXTURE_2D)
+    
+    
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[3])  # Use the first texture
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, 20)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, -20, 20)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(100, -20, 20)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(100, 0, 20)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, 60)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, -20, 60)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, -20, 20)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40, 0, 20)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(200, 0, 60)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(200, -20, 60)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, -20, 60)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40, 0, 60)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(100, 0, 20)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(100, -20, 20)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(100, -20, -20)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(100, 0, -20)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(100, 0, -20)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(100, -20, -20)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, -20, -20)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40, 0, -20)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, 20)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, -20, 20)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, -20, -DimBoard)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(40, 0, -DimBoard)
+    glEnd()
+    glPopMatrix()
+    
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, 0, -DimBoard)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, -20, -DimBoard)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(DimBoard, -20, -DimBoard)
     glTexCoord2f(1.0, 0.0)
     glVertex3d(DimBoard, 0, -DimBoard)
-    
     glEnd()
-    # glDisable(GL_TEXTURE_2D)
+    glPopMatrix()
+    
+    glDisable(GL_TEXTURE_2D)
+    
+    
+    glEnable(GL_TEXTURE_2D)
+    
+    glBindTexture(GL_TEXTURE_2D, textures[7])  # Use the first texture
+    glPushMatrix()
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(40, -20, -200)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, -20, 60)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(200, -20, 60)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(200, -20, -200)
+    glEnd()
+    glPopMatrix()
+    
+    
+    
+    glDisable(GL_TEXTURE_2D)
+    
+    
+def robotTransitZone():
+    # Activa el uso de texturas y define el color
+    glColor3f(1.0, 1.0, 1.0)
+    glPushMatrix()
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[7])  # Usa la textura del piso (cambia si deseas otra textura)
+    
+    # Dibuja la zona de tránsito
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(10, 0.5, 30)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(30, 0.5, 30)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(30, 0.5, 80)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(10, 0.5, 80)  # Superior izquierda
+    glEnd()
+    glPopMatrix()
+    #Deshabilita texturas después de dibujar
+    glDisable(GL_TEXTURE_2D)
+    
+def robotLoadZone():
+    global h_load_zone
+    # Activa el uso de texturas y define el color
+    glColor3f(1.0, 1.0, 1.0)
+    glPushMatrix()
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[9])  # Usa la textura del piso (cambia si deseas otra textura)
+    
+    # Dibuja la zona de tránsito
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(3, 0.2, 140)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(h_load_zone + 5, 0.2, 140)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(h_load_zone + 5, 0.2, 115)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(3, 0.2, 115)  # Superior izquierda
+    glEnd()
+    glPopMatrix()
+    #Deshabilita texturas después de dibujar
+    glDisable(GL_TEXTURE_2D)
+    
+    
+def walls():
+    glPushMatrix()
+    wall_height = 200  # Altura de las paredes
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, textures[6]) 
+# Dibujar la pared izquierda
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 0, -DimBoard)  # Abajo izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, wall_height, -DimBoard)  # Arriba izquierda
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(-DimBoard, wall_height, DimBoard)  # Arriba derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(-DimBoard, 0, DimBoard)  # Abajo derecha
+    glEnd()
 
+    # Dibujar la pared derecha
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(DimBoard, 0, -DimBoard)  # Abajo izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(DimBoard, wall_height, -DimBoard)  # Arriba izquierda
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(DimBoard, wall_height, DimBoard)  # Arriba derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(DimBoard, 0, DimBoard)  # Abajo derecha
+    glEnd()
+
+    # Dibujar la pared frontal
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 0, DimBoard)  # Abajo izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, wall_height, DimBoard)  # Arriba izquierda
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(DimBoard, wall_height, DimBoard)  # Arriba derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(DimBoard, 0, DimBoard)  # Abajo derecha
+    glEnd()
+
+    # Dibujar la pared trasera
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-DimBoard, 0, -DimBoard)  # Abajo izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(-DimBoard, wall_height, -DimBoard)  # Arriba izquierda
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(DimBoard, wall_height, -DimBoard)  # Arriba derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(DimBoard, 0, -DimBoard)  # Abajo derecha
+    glEnd()
+    glPopMatrix()
+    glDisable(GL_TEXTURE_2D)
+
+
+PAN_STEP = 5.0    
+def check_camera(keys):
+    global EYE_X, EYE_Y, EYE_Z, CENTER_X, CENTER_Y, CENTER_Z, UP_X, UP_Y, UP_Z, theta, num_cam
+
+    if keys[pygame.K_UP]:  # Cambiar entre cámaras
+        num_cam = (num_cam + 1) % 4  # Cambia entre las cámaras (0 a 3)
+        if num_cam == 0:
+            EYE_X, EYE_Y, EYE_Z = -50, 10, 60
+            CENTER_X, CENTER_Y, CENTER_Z = 50, 10, 60
+        elif num_cam == 1:
+            EYE_X, EYE_Y, EYE_Z = -40, 40, -40
+            CENTER_X, CENTER_Y, CENTER_Z = 40, 10, 40
+        elif num_cam == 2:
+            EYE_X, EYE_Y, EYE_Z = 103.9, 39.9, 63.9
+            CENTER_X, CENTER_Y, CENTER_Z = 75, 0, 40
+        elif num_cam == 3:
+            EYE_X, EYE_Y, EYE_Z = 150, 60, 150
+            CENTER_X, CENTER_Y, CENTER_Z = 75, 0, 60
+
+    elif keys[pygame.K_LEFT]:  # Paneo hacia la derecha
+        # Mover el punto de mira hacia la derecha relativo a la dirección de la cámara
+        dx = CENTER_X - EYE_X
+        dz = CENTER_Z - EYE_Z
+        norm = (dx ** 2 + dz ** 2) ** 0.5
+        # Desplazamiento ortogonal a la dirección de la cámara
+        CENTER_X += PAN_STEP * dz / norm
+        CENTER_Z -= PAN_STEP * dx / norm
+
+    elif keys[pygame.K_RIGHT]:  # Paneo hacia la izquierda
+        # Mover el punto de mira hacia la izquierda relativo a la dirección de la cámara
+        dx = CENTER_X - EYE_X
+        dz = CENTER_Z - EYE_Z
+        norm = (dx ** 2 + dz ** 2) ** 0.5
+        # Desplazamiento ortogonal a la dirección de la cámara
+        CENTER_X -= PAN_STEP * dz / norm
+        CENTER_Z += PAN_STEP * dx / norm
+    # Actualizar la vista con la nueva configuración
+    glLoadIdentity()
+    gluLookAt(EYE_X, EYE_Y, EYE_Z, CENTER_X, CENTER_Y, CENTER_Z, UP_X, UP_Y, UP_Z)
 
 
 def display():
-    global robots_julia, boxes_julia, boxes,robots
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    Axis()
-        
+    global robots_julia, boxes_julia, boxes,robots,h_load_zone
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)      
     for robot_data in robots_julia:
         x_log,y_log,z_log = robot_data["position"]
         robot = robots[robot_data["id"] - 30]
@@ -229,86 +590,41 @@ def display():
 
     
     #Axis()
+  # Asegúrate de habilitar texturas
+    # Dibuja el contenedor
+    
     for obj in bins:
-        obj.draw()
-    for box_data in boxes_julia:
+        obj.draw() 
+    
+    for box_data in boxes_julia:    
         x_log,y_log,z_log = box_data["position"]
         box = boxes[box_data["id"] - 1]
-        box.up([x_log,y_log,z_log])
+        box.up([x_log+0.1,y_log+0.1,z_log+0.1])
+        box.up_WHD(box_data['WHD'])
+        print(f"Box ID: {box_data['id']}, Position: ({x_log}, {y_log}, {z_log}), WHD: {box_data['WHD']}")
         if box_data["showing"] == 1:
-            box.draw()
-        
+            box.draw() 
     #Se dibuja el plano gris
     planoText()
-    glColor3f(0.3, 0.3, 0.3)
-    glBegin(GL_QUADS)
-    glVertex3d(-DimBoard, 0, -DimBoard)
-    glVertex3d(-DimBoard, 0, DimBoard)
-    glVertex3d(DimBoard, 0, DimBoard)
-    glVertex3d(DimBoard, 0, -DimBoard)
-    glEnd()
-    
-    # Draw the walls bounding the plane
-    wall_height = 50.0  # Adjust the wall height as needed
-    
-    # glColor3f(0.8, 0.8, 0.8)  # Light gray color for walls
-    
-    # # Draw the left wall
-    # glBegin(GL_QUADS)
-    # glVertex3d(-DimBoard, 0, -DimBoard)
-    # glVertex3d(-DimBoard, 0, DimBoard)
-    # glVertex3d(-DimBoard, wall_height, DimBoard)
-    # glVertex3d(-DimBoard, wall_height, -DimBoard)
-    # glEnd()
-    
-    # # Draw the right wall
-    # glBegin(GL_QUADS)
-    # glVertex3d(DimBoard, 0, -DimBoard)
-    # glVertex3d(DimBoard, 0, DimBoard)
-    # glVertex3d(DimBoard, wall_height, DimBoard)
-    # glVertex3d(DimBoard, wall_height, -DimBoard)
-    # glEnd()
-    
-    # # Draw the front wall
-    # glBegin(GL_QUADS)
-    # glVertex3d(-DimBoard, 0, DimBoard)
-    # glVertex3d(DimBoard, 0, DimBoard)
-    # glVertex3d(DimBoard, wall_height, DimBoard)
-    # glVertex3d(-DimBoard, wall_height, DimBoard)
-    # glEnd()
-    
-    # # Draw the back wall
-    # glBegin(GL_QUADS)
-    # glVertex3d(-DimBoard, 0, -DimBoard)
-    # glVertex3d(DimBoard, 0, -DimBoard)
-    # glVertex3d(DimBoard, wall_height, -DimBoard)
-    # glVertex3d(-DimBoard, wall_height, -DimBoard)
-    # glEnd()
+    walls()
+    #robotTransitZone()  # Dibuja la zona de tránsito
+    robotLoadZone()
+    draw_ceiling()
 
     
-def lookAt():
-    glLoadIdentity()
-    rad = theta * math.pi / 180
-    newX = EYE_X * math.cos(rad) + EYE_Z * math.sin(rad)
-    newZ = -EYE_X * math.sin(rad) + EYE_Z * math.cos(rad)
-    gluLookAt(newX,EYE_Y,newZ,CENTER_X,CENTER_Y,CENTER_Z,UP_X,UP_Y,UP_Z)
     
+    
+def lookAt():
+    global EYE_X, EYE_Y,EYE_Z
+    glLoadIdentity()
+    gluLookAt(EYE_X,EYE_Y,EYE_Z,CENTER_X,CENTER_Y,CENTER_Z,UP_X,UP_Y,UP_Z)
+
+
 done = False
 Init()
 while not done:
     keys = pygame.key.get_pressed()  # Checking pressed keys
-    if keys[pygame.K_RIGHT]:
-        if theta > 359.0:
-            theta = 0
-        else:
-            theta += 1.0
-        lookAt()
-    if keys[pygame.K_LEFT]:
-        if theta < 1.0:
-            theta = 360.0
-        else:
-            theta -= 1.0
-        lookAt()
+    check_camera(keys)
 
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
@@ -317,7 +633,6 @@ while not done:
         if event.type == pygame.QUIT:
             done = True
     update_simulation()
-    glClear(GL_COLOR_BUFFER_BIT)
     display()
     pygame.display.flip()
     pygame.time.wait(10)

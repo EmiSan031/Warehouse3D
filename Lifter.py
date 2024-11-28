@@ -10,6 +10,8 @@ from OpenGL.GLUT import *
 import random
 import math
 
+from box import Box
+
 
 class Lifter:
     def __init__(self, position, box_dims ,textures):
@@ -165,7 +167,7 @@ class Lifter:
 
     def draw(self):
         glPushMatrix()
-        glTranslatef(self.Position[0], self.Position[1], self.Position[2])
+        glTranslatef(self.Position[0], self.Position[1]+5, self.Position[2])
         if self.theta != 0:
             glRotatef(self.theta, 0, 1, 0)
         glScaled(5, 5, 5)
@@ -175,73 +177,67 @@ class Lifter:
         glBindTexture(GL_TEXTURE_2D, self.textures[2])
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
-        glVertex3d(1, 1, 1)
+        glVertex3d(1, 0.5, 1)
         glTexCoord2f(0.0, 1.0)
-        glVertex3d(1, 1, -1)
+        glVertex3d(1, 0.5, -1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, -1, -1)
+        glVertex3d(1, -0.5, -1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, -1, 1)
+        glVertex3d(1, -0.5, 1)
 
         # 2nd face
         glTexCoord2f(0.0, 0.0)
-        glVertex3d(-2, 1, 1)
+        glVertex3d(-2, 0.5, 1)
         glTexCoord2f(0.0, 1.0)
-        glVertex3d(1, 1, 1)
+        glVertex3d(1, 0.5, 1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, -1, 1)
+        glVertex3d(1, -0.5, 1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(-2, -1, 1)
+        glVertex3d(-2, -0.5, 1)
 
         # 3rd face
         glTexCoord2f(0.0, 0.0)
-        glVertex3d(-2, 1, -1)
+        glVertex3d(-2, 0.5, -1)
         glTexCoord2f(0.0, 1.0)
-        glVertex3d(-2, 1, 1)
+        glVertex3d(-2, 0.5, 1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(-2, -1, 1)
+        glVertex3d(-2, -0.5, 1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(-2, -1, -1)
+        glVertex3d(-2, -0.5, -1)
 
         # 4th face
         glTexCoord2f(0.0, 0.0)
-        glVertex3d(1, 1, -1)
+        glVertex3d(1, 0.5, -1)
         glTexCoord2f(0.0, 1.0)
-        glVertex3d(-2, 1, -1)
+        glVertex3d(-2, 0.5, -1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(-2, -1, -1)
+        glVertex3d(-2, -0.5, -1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, -1, -1)
+        glVertex3d(1, -0.5, -1)
 
         # top
         glTexCoord2f(0.0, 0.0)
-        glVertex3d(1, 1, 1)
+        glVertex3d(1, 0.5, 1)
         glTexCoord2f(0.0, 1.0)
-        glVertex3d(-2, 1, 1)
+        glVertex3d(-2, 0.5, 1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(-2, 1, -1)
+        glVertex3d(-2, 0.5, -1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, 1, -1)
+        glVertex3d(1, 0.5, -1)
         glEnd()
-
-        # Head
-
-        glPushMatrix()
-        glTranslatef(0, 1.5, 0)
-        glScaled(0.8, 0.8, 0.8)
-        glColor3f(1.0, 1.0, 1.0)
-        head = Cubo(self.textures, 0)
-        head.draw()
-        glPopMatrix()
+        
         glDisable(GL_TEXTURE_2D)
+        
+
 
         # Wheels
         glEnable(GL_TEXTURE_2D)
         glBindTexture(GL_TEXTURE_2D, self.textures[1])
+        glColor3f(1.0, 1.0, 1.0)
         glPushMatrix()
         glTranslatef(-1.2, -1, 1)
         glScaled(0.3, 0.3, 0.3)
-        glColor3f(1.0, 1.0, 1.0)
+        
         wheel = Cubo(self.textures, 0)
         wheel.draw()
         glPopMatrix()
@@ -265,13 +261,11 @@ class Lifter:
         glScaled(0.3, 0.3, 0.3)
         wheel = Cubo(self.textures, 0)
         wheel.draw()
-        glPopMatrix()
         glDisable(GL_TEXTURE_2D)
+        glPopMatrix()
 
         # Lifter
         glPushMatrix()
-        if self.status == 1 or self.status == 2 or self.status == 3:
-            self.drawTrash()
         glColor3f(0.0, 0.0, 0.0)
         glTranslatef(0, self.platformHeight, 0)  # Up and down
         glBegin(GL_QUADS)
@@ -285,80 +279,16 @@ class Lifter:
         glVertex3d(3, 1, 1)
         glEnd()
         glPopMatrix()
+        
         glPopMatrix()
 
     def draw_box(self):
         glPushMatrix()
-        glTranslatef(2, (self.platformHeight + 1.5), 0)
-        glScaled(0.5, 0.5, 0.5)
+        glTranslatef(self.Position[0], self.Position[1], self.Position[2])
+        if self.theta != 0:
+            glRotatef(self.theta, 0, 1, 0)
         glColor3f(1.0, 1.0, 1.0)
-
-        glEnable(GL_TEXTURE_2D)
-        glBindTexture(GL_TEXTURE_2D, self.textures[3])
-
-        glBegin(GL_QUADS)
-
-        # Front face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(1, 1, 1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(-1, 1, 1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(-1, -1, 1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(1, -1, 1)
-
-        # Back face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(-1, 1, -1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, 1, -1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, -1, -1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(-1, -1, -1)
-
-        # Left face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(-1, 1, 1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(-1, 1, -1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(-1, -1, -1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(-1, -1, 1)
-
-        # Right face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(1, 1, -1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, 1, 1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, -1, 1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(1, -1, -1)
-
-        # Top face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(-1, 1, 1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, 1, 1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, 1, -1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(-1, 1, -1)
-
-        # Bottom face
-        glTexCoord2f(0.0, 0.0)
-        glVertex3d(-1, -1, 1)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3d(1, -1, 1)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3d(1, -1, -1)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3d(-1, -1, -1)
-
-        glEnd()
-        glDisable(GL_TEXTURE_2D)
-
+        box = Box([10,self.platformHeight+self.box_depth/2 + 5,0],[self.box_width,self.box_height,self.box_depth],1,self.textures)
+        box.draw()
         glPopMatrix()
+        

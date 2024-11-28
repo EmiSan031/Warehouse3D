@@ -1,7 +1,5 @@
 using Agents, Random, Distributions,HTTP,JSON
 
-
-
 # Define el agente de Caja
 @agent struct BoxAgent(GridAgent{3})
     width::Int
@@ -27,10 +25,7 @@ end
     rotating::Int = 0
     previous_direction::String = "RIGHT"
     timer::Int = 0
-    just_changed_lanes::Bool = false
     one_time_rotation::Int = 1
-    actual_x::Int
-    getting_back_to_lane::Bool = false
     new_pos::Tuple{Int,Int,Int} = (0,0,0)
     box_width::Int = 0
     box_height::Int = 0
@@ -46,7 +41,10 @@ function agent_step!(agent, model)
 end
 
 # Función sin operación para las cajas (ya que no se mueven)
-function box_step!(box::BoxAgent, model) end
+function box_step!(box::BoxAgent, model) 
+    println("Caja $(box.id) con posicion $(box.pos)")
+
+end
 
 # Función principal de movimiento y operación de los robots
 function robot_step!(robot::RobotAgent, model)
@@ -54,23 +52,24 @@ function robot_step!(robot::RobotAgent, model)
         if !robot.heading_back
             # Si el robot tiene cajas pendientes y está trabajando, comienza su recorrido a buscar caja
             if !isempty(robot.cargo_boxes) && robot.is_working
-                if at_collect_zone(robot) 
+                if at_collect_zone(robot) || robot.pos[3] == robot.collect_zone_z + 1
                     # el robot  esta en la posicion en z de recogida de paquetes. 
-                    if !isempty(robot.cargo_boxes) && robot.cargo_boxes[1].pos[1] != robot.pos[1]
+                    if !isempty(robot.cargo_boxes) && robot.cargo_boxes[1].pos[1] != robot.pos[1]   
                         if robot.pos[1] > robot.cargo_boxes[1].pos[1]
                             robot.new_pos = (robot.pos[1] - 1, robot.pos[2],robot.pos[3])
                         elseif robot.pos[1] < robot.cargo_boxes[1].pos[1]
                             robot.new_pos = (robot.pos[1] + 1, robot.pos[2],robot.pos[3])
                         end
+                    elseif robot.cargo_boxes[1].pos[1] == robot.pos[1] && robot.pos[3] != robot.collect_zone_z + 1
+                        robot.new_pos = (robot.pos[1], robot.pos[2],robot.pos[3]+1)#Aqui el robot esta en la posicion de la caja a recoger entonces se apica la logica
                     else
-                        #Aqui el robot esta en la posicion de la caja a recoger entonces se apica la logica
                         collect_box!(robot) 
                     end
                 else
                     # el robot no esta en la posicion en z de recogida de paquetes. 
-                    if robot.pos[1] < 20
+                    if robot.pos[1] < 0
                         robot.new_pos = (robot.pos[1] + 1, robot.pos[2],robot.pos[3])
-                    elseif robot.pos[1] > 20
+                    elseif robot.pos[1] > 0
                         robot.new_pos = (robot.pos[1] - 1, robot.pos[2],robot.pos[3])
                     elseif robot.pos[3] < robot.collect_zone_z
                         robot.new_pos = (robot.pos[1], robot.pos[2],robot.pos[3] + 1)
@@ -79,14 +78,23 @@ function robot_step!(robot::RobotAgent, model)
                     end
                 end
             end
+            if !robot.is_working
+                if robot.pos[3] != 1 
+                    robot.new_pos = (robot.pos[1], robot.pos[2],robot.pos[3] - 1)
+                elseif robot.pos[3] == 1 && robot.pos[1] != 1
+                    robot.new_pos = (robot.pos[1] - 1, robot.pos[2],robot.pos[3])
+                end
+            end
         else
-            if robot.pos[1] != 20 && robot.pos[3] != robot.drop_zone_z
-                if robot.pos[1] < 20 
+            if robot.pos[3] != 80 && robot.pos[1] != 30 && robot.pos[3] != robot.drop_zone_z
+                robot.new_pos = (robot.pos[1], robot.pos[2],robot.pos[3] - 1)
+            elseif robot.pos[1] != 30 && robot.pos[3] != robot.drop_zone_z
+                if robot.pos[1] < 30 
                     robot.new_pos = (robot.pos[1] + 1, robot.pos[2],robot.pos[3])
-                elseif robot.pos[1] > 20
+                elseif robot.pos[1] > 30
                     robot.new_pos = (robot.pos[1] - 1, robot.pos[2],robot.pos[3])
                 end 
-            elseif robot.pos[1] == 20 && robot.pos[3] > robot.drop_zone_z
+            elseif robot.pos[1] == 30 && robot.pos[3] > robot.drop_zone_z
                 robot.new_pos = (robot.pos[1], robot.pos[2],robot.pos[3] - 1)
             elseif robot.pos[3] == robot.drop_zone_z && robot.pos[1] != robot.drop_zone_x
                 robot.new_pos = (robot.pos[1] + 1, robot.pos[2],robot.pos[3])
@@ -95,10 +103,11 @@ function robot_step!(robot::RobotAgent, model)
                 robot.heading_back = false  # Volver al modo de búsqueda de cajas
                 if isempty(robot.cargo_boxes)
                     robot.is_working = false
+                    
                 end
             end
         end
-        if !check_for_rotation(robot)
+        if !check_for_rotation(robot) && !robot_in_front(robot,model)
             robot.previous_direction = robot.direction
             robot.previous_pos = robot.pos  
             robot.pos = robot.new_pos
@@ -118,7 +127,41 @@ function robot_step!(robot::RobotAgent, model)
         end
     end
 end
-
+function in_position(pos::Tuple{Int, Int, Int}, model)
+    return !isempty(agents_in_position(pos, model))
+end
+function robot_in_front(robot::RobotAgent,model)
+    for neighbor in nearby_agents(robot, model, 40)
+        if neighbor isa RobotAgent
+            if robot.direction == "RIGHT"
+                if (neighbor.pos[1] > robot.pos[1] && neighbor.pos[1] < robot.pos[1] + 40) && (neighbor.pos[3] > robot.pos[3] - 20 && robot.pos[3] < robot.pos[3] + 20)
+                    return true
+                else
+                    return false
+                end
+            elseif robot.direction == "LEFT"
+                if (neighbor.pos[1] < robot.pos[1] && neighbor.pos[1] > robot.pos[1] - 40) && (neighbor.pos[3] > robot.pos[3] - 20 && neighbor.pos[3] < robot.pos[3] + 20)
+                    return true
+                else
+                    return false
+                end
+            elseif robot.direction == "UP"
+                if (neighbor.pos[3] < robot.pos[3] && neighbor.pos[3] > robot.pos[3] - 40) && (neighbor.pos[1] > robot.pos[1] - 20 && neighbor.pos[1] < robot.pos[1] + 20)
+                    return true
+                else
+                    return false
+                end
+            elseif robot.direction == "DOWN"
+                if (neighbor.pos[3] > robot.pos[3] && neighbor.pos[3] < robot.pos[3] + 40) && (neighbor.pos[1] > robot.pos[1] - 20 && neighbor.pos[1] < robot.pos[1] + 20)
+                    return true
+                else
+                    return false
+                end
+            end
+        end
+    end
+    return false
+end
 function check_for_rotation(robot::RobotAgent)
     if robot.new_pos != robot.pos
         delta = (robot.new_pos[1] - robot.pos[1], robot.new_pos[3] - robot.pos[3])
@@ -167,7 +210,7 @@ function at_drop_zone(robot::RobotAgent)
 end
 
 function at_collect_zone(robot::RobotAgent)
-    return robot.pos[3] == robot.drop_zone_z
+    return robot.pos[3] == robot.collect_zone_z
 end
 
 # Función para recoger una caja
@@ -193,7 +236,7 @@ end
 function drop_box(robot::RobotAgent, model)
     robot.heading_back = false  # Marcar que el robot no está regresando
     box = robot.cargo_boxes[1]
-    move_agent!(box,(box.position_in_container[1] + 20, box.position_in_container[2], box.position_in_container[3] + 40),model)
+    move_agent!(box,(104 - box.position_in_container[1], box.position_in_container[3], box.position_in_container[2]+20),model)
     box.showing = 1
     popfirst!(robot.cargo_boxes)
     robot.box_width = 0
@@ -242,6 +285,14 @@ function handle_packing(api_url, container, items, model)
     packing_data = generate_packing_data(container, items)
     packing_result = send_packing_request(api_url, packing_data)
     print(packing_result)
+    # Directorio de trabajo actual
+    current_folder = pwd()
+        
+    # Guardar el resultado en un archivo JSON
+    file_path = joinpath(current_folder, "packing_result.json")
+    open(file_path, "w") do io
+        write(io, JSON.json(packing_result))
+    end
     if packing_result["Success"]
         robots = [agent for agent in allagents(model) if agent isa RobotAgent]
 
@@ -252,33 +303,39 @@ function handle_packing(api_url, container, items, model)
         end
         box_id = 1
         robot_index = 1
-        start_x = 5
+        start_x = 1
+        start_z = 120
         # Agregar cajas al modelo
         for item in packing_result["data"]["fitItem"]
             end_pos = Tuple(item["position"])
             dimensions = Tuple(item["WHD"])
             weight = item["weight"]
             # Asignar posición inicial (simulada aleatoriamente)
-            start_pos = (start_x, 1, 80)
-            
-            box = add_agent!(BoxAgent,
-                model;
-                id = box_id,
-                pos = start_pos,
-                weight = weight,
-                width = dimensions[1],
-                height = dimensions[2],
-                depth = dimensions[3],
-                position_in_container = end_pos
-            )
-            # Asignar la caja al cargo_boxes del robot actual
-            push!(robots[robot_index].cargo_boxes, box)
+            start_pos = (start_x, Int(floor(dimensions[3]/2)), start_z)
+            if item["name"] != "corner"
+                box = add_agent!(BoxAgent,
+                    model;
+                    id = box_id,
+                    pos = start_pos,
+                    weight = weight,
+                    width = dimensions[1],
+                    height = dimensions[2],
+                    depth = dimensions[3],
+                    position_in_container = end_pos
+                )
+                # Asignar la caja al cargo_boxes del robot actual
+                push!(robots[robot_index].cargo_boxes, box)
 
-            # Avanzar al siguiente robot (ciclo circular)
-            robot_index = robot_index % length(robots) + 1
-            start_x = start_x + box.height + 3
-            box_id += 1
-            println("1 caja agregada")
+                # Avanzar al siguiente robot (ciclo circular)
+                robot_index = robot_index % length(robots) + 1
+                start_x = start_x + box.height + 7
+                if start_x > 200
+                    start_x = 1
+                    start_z += 15
+                end
+                box_id += 1
+                println("1 caja agregada")
+            end
         end
 
         println("Cajas agregadas al modelo después de ordenarlas.")
@@ -290,44 +347,37 @@ end
 
 
 function warehouse_simulation(; grid_dims = (200,50,200), num_boxes = 5)
-    container = Dict(:name => "Container1", :WHD => [40, 60, 15], :weight => 1000, :corner => 15, :openTop => 1)
+    container = Dict(:name => "Container1", :WHD => (64, 44, 40), :weight => 3000, :corner => 0, :openTop => [1,2])
     items = [
-    Dict(:name => "Box1", :WHD => [10, 10, 10], :weight => 5, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
-    Dict(:name => "Box2", :WHD => [20, 20, 20], :weight => 10, :count => 2, :level => 1, :loadbear => 20, :updown => 1, :color => 2, :type => 1)
+    Dict(:name => "Box1", :WHD => [14,14,14], :weight => 5, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box2", :WHD => [10,10,10], :weight => 10, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 2, :type => 1),
+    Dict(:name => "Box3", :WHD => [5,5,5], :weight => 2, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box4", :WHD => [14,14,14], :weight => 8, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box5", :WHD => [10,10,10], :weight => 6, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box6", :WHD => [5,5,5], :weight => 3, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box7", :WHD => [14,14,14], :weight => 25, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box8", :WHD => [5,5,5], :weight => 5, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box9", :WHD => [10,10,10], :weight => 10, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box10", :WHD => [14,14,14], :weight => 23, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box11", :WHD => [5,5,5], :weight => 20, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box12", :WHD => [14,14,14], :weight => 12, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box13", :WHD => [10,10,10], :weight => 6, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box14", :WHD => [5,5,5], :weight => 8, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
+    Dict(:name => "Box15", :WHD => [5,5,5], :weight => 9, :count => 1, :level => 1, :loadbear => 10, :updown => 1, :color => 1, :type => 1),
     ]
-    space = GridSpace((200,40,200); periodic = false, metric = :chebyshev)
+    space = GridSpace((200, 50, 200); periodic = false, metric = :chebyshev)
     model = StandardABM(Union{RobotAgent, BoxAgent}, space; agent_step! = agent_step!, scheduler = Schedulers.Randomly(), properties = Dict{Symbol, Any}(:matrix => nothing))
     initialize_robots!(model)
-    handle_packing("http://10.50.113.227:5050/calPacking", container, items, model)
+    handle_packing("http://192.168.1.85:5050/calPacking", container, items, model)
     return model
 end
 
-# # Inicializa la matriz y coloca cajas en posiciones aleatorias
-# function initialize_grid!(model, grid_dims, num_boxes)
-#     matrix = fill(1, grid_dims)
-#     for a in 1:num_boxes
-#         empty = collect(empty_positions(model))
-#         pos = rand(empty)
-#         x, z = pos[1], pos[3]
-#         while z == 1 || z == 2  # Evita la zona de descarga y de robots
-#             pos = rand(empty)
-#             x, z = pos[1], pos[3]
-#         end
-#         matrix[x, z] = 0  # Marca la posición de la caja en la matriz
-#         add_agent!(BoxAgent, model; pos = pos, id = a + 100)
-#     end
-#     model.matrix = matrix
-# end
-
 # Inicializa los robots y define los límites de cada uno en el almacén
 function initialize_robots!(model)
-    # coordinates = [(1, 3, 1, 8), (9, 3, 9, 16), (17, 3, 17, 24), (25, 3, 25, 32), (33, 3, 33, 40)]
-    # for (id, (x, z, min_x, max_x)) in enumerate(coordinates)
-    #     robot = add_agent!(RobotAgent, model; pos = (x, z), min_x = min_x, max_x = max_x, drop_zone_x = min_x, id = id, actual_x = x, previous_pos = (x,z))
-    # end
     x = 20
-    z = 40
-    add_agent!(RobotAgent, model; id = 30, pos = (x,1,z), min_x = 5, max_x = 20, drop_zone_x = 40,drop_zone_z = 40, collect_zone_z = 80, actual_x = x, previous_pos = (x,1,z))
+    z = 1
+    add_agent!(RobotAgent, model; id = 30, pos = (x,1,z), min_x = 5, max_x = 20, drop_zone_x = 40,drop_zone_z = 40, collect_zone_z = 100, previous_pos = (x,1,z))
+    add_agent!(RobotAgent, model; id = 31, pos = (x,1,z + 40), min_x = 5, max_x = 20, drop_zone_x = 40,drop_zone_z = 40, collect_zone_z = 100, previous_pos = (x,1,z))
 end
 
 # Carga las cajas en la ruta del robot (sin necesidad de *pathfinding*)

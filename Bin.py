@@ -22,16 +22,11 @@ class Bin:
 
 
     def draw(self):
-        glEnable(GL_TEXTURE_2D)
-        glBindTexture(GL_TEXTURE_2D, self.textures[4])
         glPushMatrix()
         glTranslatef(self.Position[0], self.Position[1], self.Position[2])
-        # Se dibuja el cubo
-        # ...
-
-        #glEnable(GL_TEXTURE_2D)
-        #front face
-        #glBindTexture(GL_TEXTURE_2D, self.textures[self.txtIndex])
+        glColor3f(1.0,1.0,1.0)
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, self.textures[4])
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
         glVertex3d(self.WHD[0], self.WHD[2], self.WHD[1])
@@ -72,15 +67,15 @@ class Bin:
         glTexCoord2f(1.0, 0.0)
         glVertex3d(self.WHD[0], 0, 0)
 
-        # #top
-        # glTexCoord2f(0.0, 0.0)
-        # glVertex3d(self.WHD[0], self.WHD[2], self.WHD[1])
-        # glTexCoord2f(0.0, 1.0)
-        # glVertex3d(0, self.WHD[2], self.WHD[1])
-        # glTexCoord2f(1.0, 1.0)
-        # glVertex3d(0, self.WHD[2], 0)
-        # glTexCoord2f(1.0, 0.0)
-        # glVertex3d(self.WHD[0], self.WHD[2], 0)
+        #top
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(self.WHD[0], self.WHD[2], self.WHD[1])
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(0, self.WHD[2], self.WHD[1])
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(0, self.WHD[2], 0)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(self.WHD[0], self.WHD[2], 0)
         
         #bottom
         glTexCoord2f(0.0, 0.0)
@@ -91,8 +86,8 @@ class Bin:
         glVertex3d(self.WHD[0], 0.1 ,0)
         glTexCoord2f(1.0, 0.0)
         glVertex3d(0, 0.1 ,0)
-
         glEnd()
+        
+        glDisable(GL_TEXTURE_2D)
 
         glPopMatrix()
-        glDisable(GL_TEXTURE_2D)

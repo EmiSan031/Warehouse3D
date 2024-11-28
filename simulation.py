@@ -410,13 +410,57 @@ def robotTransitZone():
     # Dibuja la zona de tránsito
     glBegin(GL_QUADS)
     glTexCoord2f(0.0, 0.0)
-    glVertex3d(10, 0.5, 30)  # Inferior izquierda
+    glVertex3d(-5, 0.5, 110)  # Inferior izquierda
     glTexCoord2f(0.0, 1.0)
-    glVertex3d(30, 0.5, 30)  # Inferior derecha
+    glVertex3d(6, 0.5, 110)  # Inferior derecha
     glTexCoord2f(1.0, 1.0)
-    glVertex3d(30, 0.5, 80)  # Superior derecha
+    glVertex3d(6, 0.5, 20)  # Superior derecha
     glTexCoord2f(1.0, 0.0)
-    glVertex3d(10, 0.5, 80)  # Superior izquierda
+    glVertex3d(-5, 0.5, 20)  # Superior izquierda
+    glEnd()
+    
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(200, 0.5, 110)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(200, 0.5, 100)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(-5, 0.5, 100)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(-5, 0.5, 110)  # Superior izquierda
+    glEnd()
+    
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(200, 0.5, 85)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(200, 0.5, 75)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(-5, 0.5, 75)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(-5, 0.5,85)  # Superior izquierda
+    glEnd()
+    
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(25, 0.5, 75)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(35, 0.5, 75)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(35, 0.5, 20)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(25, 0.5,20)  # Superior izquierda
+    glEnd()
+    
+    glBegin(GL_QUADS)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3d(-5, 0.5, 45)  # Inferior izquierda
+    glTexCoord2f(0.0, 1.0)
+    glVertex3d(40, 0.5, 45)  # Inferior derecha
+    glTexCoord2f(1.0, 1.0)
+    glVertex3d(40, 0.5, 35)  # Superior derecha
+    glTexCoord2f(1.0, 0.0)
+    glVertex3d(-5, 0.5,35)  # Superior izquierda
     glEnd()
     glPopMatrix()
     #Deshabilita texturas después de dibujar
@@ -607,7 +651,7 @@ def display():
     #Se dibuja el plano gris
     planoText()
     walls()
-    #robotTransitZone()  # Dibuja la zona de tránsito
+    robotTransitZone()  # Dibuja la zona de tránsito
     robotLoadZone()
     draw_ceiling()
 

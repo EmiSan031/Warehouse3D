@@ -40,7 +40,7 @@ class Lifter:
         self.newdeg = lambda deg, inc_deg: (deg + inc_deg) % 360
         self.turn_LR = 0  # == 0: no girando, != 0: girando
         # Control variables for platform movement
-        self.platformHeight = -1.5
+        self.platformHeight = -1.9
         self.platformUp = False
         self.platformDown = False
 
@@ -70,21 +70,8 @@ class Lifter:
         self.box_width = w_box
         self.box_height = h_box
         self.box_depth = d_box
-        
-    def search(self):
-        # Change direction to random
-        dirX = random.randint(-10, 10) or 1
-        dirZ = random.randint(-1, 1) or 1
-        magnitude = math.sqrt(dirX**2 + dirZ**2)
-        self.Direction = [(dirX / magnitude), 0, (dirZ / magnitude)]
+    
 
-    def targetCenter(self):
-        # Set direction to center
-        dirX = -self.Position[0]
-        dirZ = -self.Position[2]
-        magnitude = math.sqrt(dirX**2 + dirZ**2)
-        self.Direction = [(dirX / magnitude), 0, (dirZ / magnitude)]
-        
     def up(self,new_pos):
         if self.turn_LR == 0:
             self.Position = new_pos   # Mover hacia adelante
@@ -235,7 +222,7 @@ class Lifter:
         glBindTexture(GL_TEXTURE_2D, self.textures[1])
         glColor3f(1.0, 1.0, 1.0)
         glPushMatrix()
-        glTranslatef(-1.2, -1, 1)
+        glTranslatef(-1.2, -0.8, 1)
         glScaled(0.3, 0.3, 0.3)
         
         wheel = Cubo(self.textures, 0)
@@ -243,21 +230,21 @@ class Lifter:
         glPopMatrix()
 
         glPushMatrix()
-        glTranslatef(0.5, -1, 1)
+        glTranslatef(0.5, -0.8, 1)
         glScaled(0.3, 0.3, 0.3)
         wheel = Cubo(self.textures, 0)
         wheel.draw()
         glPopMatrix()
 
         glPushMatrix()
-        glTranslatef(0.5, -1, -1)
+        glTranslatef(0.5, -0.8, -1)
         glScaled(0.3, 0.3, 0.3)
         wheel = Cubo(self.textures, 0)
         wheel.draw()
         glPopMatrix()
 
         glPushMatrix()
-        glTranslatef(-1.2, -1, -1)
+        glTranslatef(-1.2, -0.8, -1)
         glScaled(0.3, 0.3, 0.3)
         wheel = Cubo(self.textures, 0)
         wheel.draw()
@@ -274,10 +261,72 @@ class Lifter:
         glTexCoord2f(0.0, 1.0)
         glVertex3d(1, 1, -1)
         glTexCoord2f(1.0, 1.0)
-        glVertex3d(3, 1, -1)
+        glVertex3d(4, 1, -1)
         glTexCoord2f(1.0, 0.0)
-        glVertex3d(3, 1, 1)
+        glVertex3d(4, 1, 1)
         glEnd()
+        glPopMatrix()
+        
+        #Dibujar columnas
+        glPushMatrix()
+        glColor3f(0.0, 0.0, 0.0)
+        glTranslate(1.5,-1.5,-1)
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(0, 0, 0)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(0, 0, 0.5)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(0, 4, 0.5)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(0, 4, 0)
+        glEnd()
+        
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(-0.5, 0, 0.5)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(0, 0, 0.5)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(0, 4, 0.5)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(-0.5, 4, 0)
+        glEnd()
+        
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(-0.5, 0, 0)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(-0.5, 0, 0.5)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(-0.5, 4, 0.5)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(-0.5, 4, 0)
+        glEnd()
+        
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(0, 0, 0)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(-0.5, 0, 0)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(-0.5, 4, 0)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(0, 4, 0)
+        glEnd()
+        
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex3d(0, 4, 0)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3d(0, 4, 0.5)
+        glTexCoord2f(1.0, 1.0)
+        glVertex3d(-0.5, 4, 0.5)
+        glTexCoord2f(1.0, 0.0)
+        glVertex3d(-0.5, 4, 0)
+        glEnd()
+        
+           
         glPopMatrix()
         
         glPopMatrix()
@@ -288,7 +337,7 @@ class Lifter:
         if self.theta != 0:
             glRotatef(self.theta, 0, 1, 0)
         glColor3f(1.0, 1.0, 1.0)
-        box = Box([10,self.platformHeight+self.box_depth/2 + 5,0],[self.box_width,self.box_height,self.box_depth],1,self.textures)
+        box = Box([13.5,self.platformHeight+self.box_depth/2 + 2,0],[self.box_width,self.box_height,self.box_depth],1,self.textures)
         box.draw()
         glPopMatrix()
         

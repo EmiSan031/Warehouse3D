@@ -102,15 +102,16 @@ function robot_step!(robot::RobotAgent, model)
                 drop_box(robot, model)  # Dejar la caja en el stack
                 robot.heading_back = false  # Volver al modo de búsqueda de cajas
                 if isempty(robot.cargo_boxes)
-                    robot.is_working = false
-                    
+                    robot.is_working = false 
                 end
             end
         end
-        if !check_for_rotation(robot) && !robot_in_front(robot,model)
+        if !check_for_rotation(robot)
             robot.previous_direction = robot.direction
             robot.previous_pos = robot.pos  
-            robot.pos = robot.new_pos
+            if !robot_in_front(robot,model) && !robot_in_dropzone(robot,model)
+                robot.pos = robot.new_pos
+            end
         end
     else
         if robot.one_time_rotation == 1
@@ -130,29 +131,43 @@ end
 function in_position(pos::Tuple{Int, Int, Int}, model)
     return !isempty(agents_in_position(pos, model))
 end
+
+function robot_in_dropzone(robot::RobotAgent,model)
+    if robot.pos[3] == 80 && robot.pos[1] == 31
+        for neighbor in nearby_agents(robot, model, 50)
+            if neighbor isa RobotAgent
+                if neighbor.pos[3] == robot.drop_zone_z
+                    return true
+                end
+            end
+        end
+        return false
+    end
+    return false
+end
 function robot_in_front(robot::RobotAgent,model)
-    for neighbor in nearby_agents(robot, model, 40)
+    for neighbor in nearby_agents(robot, model, 60)
         if neighbor isa RobotAgent
             if robot.direction == "RIGHT"
-                if (neighbor.pos[1] > robot.pos[1] && neighbor.pos[1] < robot.pos[1] + 40) && (neighbor.pos[3] > robot.pos[3] - 20 && robot.pos[3] < robot.pos[3] + 20)
+                if (neighbor.pos[1] > robot.pos[1] && neighbor.pos[1] < robot.pos[1] + 60) && (neighbor.pos[3] > robot.pos[3] - 10 && neighbor.pos[3] < robot.pos[3] + 10)
                     return true
                 else
                     return false
                 end
             elseif robot.direction == "LEFT"
-                if (neighbor.pos[1] < robot.pos[1] && neighbor.pos[1] > robot.pos[1] - 40) && (neighbor.pos[3] > robot.pos[3] - 20 && neighbor.pos[3] < robot.pos[3] + 20)
+                if (neighbor.pos[1] < robot.pos[1] && neighbor.pos[1] > robot.pos[1] - 60) && (neighbor.pos[3] > robot.pos[3] - 10 && neighbor.pos[3] < robot.pos[3] + 10)
                     return true
                 else
                     return false
                 end
             elseif robot.direction == "UP"
-                if (neighbor.pos[3] < robot.pos[3] && neighbor.pos[3] > robot.pos[3] - 40) && (neighbor.pos[1] > robot.pos[1] - 20 && neighbor.pos[1] < robot.pos[1] + 20)
+                if (neighbor.pos[3] < robot.pos[3] && neighbor.pos[3] > robot.pos[3] - 60) && (neighbor.pos[1] > robot.pos[1] - 10 && neighbor.pos[1] < robot.pos[1] + 10)
                     return true
                 else
                     return false
                 end
             elseif robot.direction == "DOWN"
-                if (neighbor.pos[3] > robot.pos[3] && neighbor.pos[3] < robot.pos[3] + 40) && (neighbor.pos[1] > robot.pos[1] - 20 && neighbor.pos[1] < robot.pos[1] + 20)
+                if (neighbor.pos[3] > robot.pos[3] && neighbor.pos[3] < robot.pos[3] + 60) && (neighbor.pos[1] > robot.pos[1] - 10 && neighbor.pos[1] < robot.pos[1] + 10)
                     return true
                 else
                     return false
@@ -310,7 +325,7 @@ function handle_packing(api_url, container, items, model)
             end_pos = Tuple(item["position"])
             dimensions = Tuple(item["WHD"])
             weight = item["weight"]
-            # Asignar posición inicial (simulada aleatoriamente)
+            # Asignar posición inicial 
             start_pos = (start_x, Int(floor(dimensions[3]/2)), start_z)
             if item["name"] != "corner"
                 box = add_agent!(BoxAgent,
